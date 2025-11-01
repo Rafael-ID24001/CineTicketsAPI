@@ -6,8 +6,8 @@ import lombok.Value;
 @Value
 @Builder
 public class ApiResponse<T> {
-    boolean success;
-    int statusCode;
-    String message;
-    T data;
+    private boolean success;
+    private int statusCode;
+    private String message;
+    private T data;
 }
