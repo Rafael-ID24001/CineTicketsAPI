@@ -33,15 +33,15 @@ public class SalaDeCineMapper {
                 .nombre(salaDtoReq.getNombre())
                 .capacidadTotal(salaDtoReq.getCapacidadTotal())
                 .tipoSala(ModelEnums.TipoSala.fromDbValue(salaDtoReq.getTipoSala().toUpperCase()))
-                .estado(ModelEnums.EstadoSala.valueOf(salaDtoReq.estado.toUpperCase()))
+                .estado(ModelEnums.EstadoSala.valueOf(salaDtoReq.getEstado().toUpperCase()))
                 .build();
     }
 
     public void forUpdate(SalaCineDto salaDtoReq , SalaDeCine salaDeCine){
-        if(salaDtoReq.nombre != null) salaDeCine.setNombre(salaDtoReq.nombre);
-        if (salaDtoReq.capacidadTotal != null) salaDeCine.setCapacidadTotal(salaDtoReq.capacidadTotal);
-        if (salaDtoReq.tipoSala != null) salaDeCine.setTipoSala(ModelEnums.TipoSala.fromDbValue(salaDtoReq.tipoSala));
-        if(salaDtoReq.estado != null)salaDeCine.setEstado(ModelEnums.EstadoSala.valueOf(salaDtoReq.estado));
+        if(salaDtoReq.getNombre() != null) salaDeCine.setNombre(salaDtoReq.getNombre());
+        if (salaDtoReq.getCapacidadTotal() != null) salaDeCine.setCapacidadTotal(salaDtoReq.getCapacidadTotal());
+        if (salaDtoReq.getTipoSala() != null) salaDeCine.setTipoSala(ModelEnums.TipoSala.fromDbValue(salaDtoReq.getTipoSala()));
+        if(salaDtoReq.getEstado() != null)salaDeCine.setEstado(ModelEnums.EstadoSala.valueOf(salaDtoReq.getEstado().toUpperCase()));
     }
 }
 
