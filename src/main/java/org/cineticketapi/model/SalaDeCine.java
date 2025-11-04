@@ -33,6 +33,6 @@ public class SalaDeCine {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private ModelEnums.EstadoSala estado = ModelEnums.EstadoSala.DISPONIBLE;
+    private ModelEnums.EstadoSala estado;
 
 }
