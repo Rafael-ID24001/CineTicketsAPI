@@ -24,9 +24,9 @@ public class Funcion {
     private Long idFuncion;
 
     @Column(name = "id_pelicula", nullable = false)
-    private Long idPpelicula;
+    private Long idPelicula;
 
-    @JoinColumn(name = "id_sala", nullable = false)
+    @Column(name = "id_sala", nullable = false)
     private Long idSala;
 
     @Column(name = "fecha_hora", nullable = false)
@@ -37,6 +37,6 @@ public class Funcion {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private ModelEnums.EstadoFuncion estado = ModelEnums.EstadoFuncion.PROGRAMADA;
+    private ModelEnums.EstadoFuncion estado;
 
 }
