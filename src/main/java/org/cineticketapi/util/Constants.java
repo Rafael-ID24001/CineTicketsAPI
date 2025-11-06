@@ -9,4 +9,6 @@ public class Constants {
     /* Constantes Servicios */
     public static final String MSG_NO_ENCONTRADO = "NO encontrado/a";
     public static final String MSG_REGISTRO_NO_ENCONTRADO = "Registro no encontrado";
+
+
 }

@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +32,7 @@ public class FuncionService {
         return listFunciones.stream().map(funcionMapper::toFuncionRespDto).toList();
     }
 
-    public Optional<FuncionRespDto> finFunciondById(Long idSala) {
+    public Optional<FuncionRespDto> findFuncionById(Long idSala) {
         Optional<Funcion> existFuncion = funcionRepository.findById(idSala);
         if (!existFuncion.isPresent()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Registro no encontrada");
@@ -83,4 +82,9 @@ public class FuncionService {
                 this.updateFuncion(idFuncion, String.valueOf(ModelEnums.EstadoFuncion.CANCELADA));
         return deletedFuncion.get().getIdFuncion();
     }
+
+    public int actualizarEstadoFuncionFutura(Long idSalaCine, ModelEnums.EstadoFuncion estadoFuncion) {
+        return funcionRepository.actualizarEstadoFuncionesFuturas(idSalaCine, estadoFuncion);
+    }
+
 }

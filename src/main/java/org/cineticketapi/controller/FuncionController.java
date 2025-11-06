@@ -22,7 +22,7 @@ public class FuncionController extends BaseController{
     private FuncionService funcionService;
 
     @GetMapping("/listar")
-    public ResponseEntity<ApiResponse<?>> getfunciones() {
+    public ResponseEntity<ApiResponse<?>> getFunciones() {
         try {
             List<FuncionRespDto> funcionList = funcionService.getFunciones();
             return ResponseEntity.ok(okApiResponse(funcionList));
@@ -33,9 +33,9 @@ public class FuncionController extends BaseController{
     }
 
     @GetMapping("/buscar/{idFuncion}")
-    public ResponseEntity<ApiResponse<?>> getfuncionbyid(@PathVariable("idFuncion") Long idFuncion) {
+    public ResponseEntity<ApiResponse<?>> getFuncionByID(@PathVariable("idFuncion") Long idFuncion) {
         try {
-            Optional<FuncionRespDto> funcion = funcionService.finFunciondById(idFuncion);
+            Optional<FuncionRespDto> funcion = funcionService.findFuncionById(idFuncion);
             return ResponseEntity.ok(okApiResponse(funcion.get()));
         } catch (ApiException ex) {
             return apiExceptionResponse(ex.getStatus(), ex.getMessage(), ex.getData());
