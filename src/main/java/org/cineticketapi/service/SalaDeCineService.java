@@ -22,8 +22,11 @@ public class SalaDeCineService {
     @Autowired
     private SalaDeCineRepository salaCineRepository;
     @Autowired
+    private AsientoService asientoService;
+    @Autowired
+    private FuncionService funcionService;
+    @Autowired
     private SalaDeCineMapper salaDeCineMapper;
-
 
     public List<SalaCineDto> getSalas() {
         List<SalaDeCine> salaDeCines = salaCineRepository.findAll();
@@ -54,10 +57,14 @@ public class SalaDeCineService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Sala ya existe");
         }
 
-        // TODO: ASIENTO:  crear todos los asientos correspondientes a la nueva sala
-
         SalaDeCine salaDeCine = salaDeCineMapper.forCreation(salaDtoReq);
-        return Optional.ofNullable(salaDeCineMapper.DomainToDto(salaCineRepository.save(salaDeCine)));
+        SalaDeCine createdsalaDeCine = salaCineRepository.save(salaDeCine);
+
+        /* crear todos los asientos correspondientes a la nueva sala */
+        asientoService.createAsientoSalaCine(createdsalaDeCine.getIdSala(),12, salaDtoReq.getCapacidadTotal());
+
+        return Optional.ofNullable(salaDeCineMapper.DomainToDto(createdsalaDeCine));
+
     }
 
     public Optional<SalaCineDto> update(SalaCineDto salaDtoReq) {
@@ -73,22 +80,16 @@ public class SalaDeCineService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Nombre de sala ya registrado");
         }
 
-        /*
-        * TODO: Cambio de CAPACIDAD o DISPOSICION de asientos
-        *   - Agregar nuevos asientos si aumenta la capacidad
-        *   - Eliminar/modificar asientos existentes si disminuye la capacidad
-        *
-        *TODO: Cambio de TIPO_SALA
-        *   Actualizar tipo_asiento si cambia el tipo_sala
-        *       - ASIENTO: Actualizar tipo_asiento para coincidir con el nuevo tipo de sala
-        *       - FUNCION: Revisar compatibilidad con películas programadas
-        *
-        * TODO: Cambio de ESTADO de la sala
+        /**
         *   Si estado cambia a MANTENIMIENTO o FUERA_DE_SERVICIO:
-        *   - Cancelar funciones futuras programadas
-        *   - Actualizar estado de funciones afectadas a CANCELADA
-        *
+        *   Se cancelan las funciones futuras
         * */
+        String estadoSala = Optional.ofNullable(salaDtoReq.getEstado()).map(String::toUpperCase).orElse(null);
+        if (estadoSala != null &&
+                (ModelEnums.EstadoSala.MANTENIMIENTO.name().equals(estadoSala) ||
+                ModelEnums.EstadoSala.FUERA_DE_SERVICIO.name().equals(estadoSala))) {
+            funcionService.actualizarEstadoFuncionFutura(salaDtoReq.getIdSala(), ModelEnums.EstadoFuncion.CANCELADA);
+        }
 
         Optional<SalaDeCine> modelUpdate = salaCineRepository.findByIdSala(salaDtoReq.getIdSala());
         salaDeCineMapper.forUpdate(salaDtoReq, modelUpdate.get());
@@ -102,16 +103,9 @@ public class SalaDeCineService {
         if (salaExiste.get().getIdSala() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Sala " + Constants.MSG_NO_ENCONTRADO);
         }
-        /*
-        * TODO: ASIENTO - ELIMINACIÓN EN CASCADA
-        *   Hacer un borrado logico
-        * TODO: FUNCION
-        *   - Las funciones asociadas NO se eliminan en cascada
-        *   - Debes manejar manualmente:
-        *       Cancelar funciones futuras
-        *       Reubicar funciones o eliminar manualmente
-        *
-        * */
+
+        /* Cancelar funciones futuras */
+        funcionService.actualizarEstadoFuncionFutura(idSala, ModelEnums.EstadoFuncion.CANCELADA);
 
         // Simular borrado logico de sala
         salaExiste.get().setEstado(String.valueOf(ModelEnums.EstadoSala.FUERA_DE_SERVICIO));
