@@ -1,0 +1,34 @@
+package org.cineticketapi.dto;
+
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.cineticketapi.dto.validationTypes.CreateValidation;
+import org.cineticketapi.dto.validationTypes.UpdateValidation;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class SalaCineDto {
+
+    @Null(message = "El ID debe ser nulo para creación", groups = CreateValidation.class)
+    @NotNull(message = "El ID es obligatorio para actualización", groups = UpdateValidation.class)
+    private Long idSala;
+
+    @NotBlank(message = "Es obligatorio y no puede estar vacío.",  groups = {CreateValidation.class, UpdateValidation.class})
+    private String nombre;
+
+    @NotNull(message = "Es obligatoria.", groups = CreateValidation.class)
+    @Positive(message = "Debe ser un valor positivo mayor a 0.", groups = CreateValidation.class)
+    @Min(message = "Capacidad minima {value}", value = 50, groups = CreateValidation.class)
+    private Integer capacidadTotal;
+
+    @NotBlank(message = "Es sala obligatorio y no puede estar vacío. Valores permitidos: REGULAR, VIP, 3D, IMAX, 4DX", groups = CreateValidation.class)
+    private String tipoSala;
+
+    @Null(message = "El estado debe ser nulo para creación", groups = CreateValidation.class)
+    private String estado;
+}
