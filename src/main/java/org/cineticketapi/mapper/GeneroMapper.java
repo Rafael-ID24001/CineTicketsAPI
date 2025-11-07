@@ -7,13 +7,13 @@ public class GeneroMapper {
 
     public static GeneroDto toDto(Genero entity) {
         if (entity == null) return null;
-        return new GeneroDto(entity.getId(), entity.getNombre(), entity.getDescripcion());
+        return new GeneroDto(entity.getIdGenero(), entity.getNombre(), entity.getDescripcion());
     }
 
     public static Genero toEntity(GeneroDto dto) {
         if (dto == null) return null;
         Genero g = new Genero();
-        g.setId(dto.getId());
+        g.setIdGenero(dto.getId());
         g.setNombre(dto.getNombre());
         g.setDescripcion(dto.getDescripcion());
         return g;
