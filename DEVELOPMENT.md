@@ -3,9 +3,8 @@
 ## Tabla de Contenidos
 1. [Configuración del Proyecto Java](#configuración-del-proyecto-java)
 2. [Configuración de Base de Datos Oracle](#configuración-de-base-de-datos-oracle)
-3. [Ejecución de Scripts SQL](#ejecución-de-scripts-sql)
-4. [Configuración de Conexión en Spring Boot](#configuración-de-conexión-en-spring-boot)
-5. [Solución de Problemas](#solución-de-problemas-comunes)
+3. [Configuración de Conexión en Spring Boot](#configuración-de-conexión-en-spring-boot)
+4. [Solución de Problemas](#solución-de-problemas-comunes)
 
 ---
 
@@ -39,34 +38,12 @@ El proyecto utiliza Gradle como gestor de dependencias:
 ## Configuración de Base de Datos Oracle
 
 ### Prerrequisitos
-- Docker instalado y en ejecución
-- Oracle Database XE 21c corriendo en contenedor Docker
+- Oracle Database (XE 21c) instalado o corriendo en contenedor Docker
 - SQL Developer, DBeaver o herramienta similar para ejecutar scripts SQL
 
-### Información del Contenedor Docker
-
-El proyecto utiliza Oracle Database XE 21c con la siguiente configuración:
-
-```yaml
-Service Name: XEPDB1
-Host: localhost
-Port: 1521
-Usuario SYSTEM: system
-Password SYSTEM: CineTicketsAPI
-```
-
-### Conexión Inicial como SYSTEM
+### Conexión Inicial como SYSTEM o Administrador de Base de Datos
 
 Para ejecutar los scripts de creación, primero necesitas conectarte como usuario SYSTEM:
-
-**Parámetros de conexión:**
-- Host: `localhost`
-- Port: `1521`
-- Service Name: `XEPDB1`
-- Username: `system`
-- Password: `CineTicketsAPI`
-
----
 
 ## Ejecución de Scripts SQL
 
@@ -254,35 +231,15 @@ SELECT 'BOLETO_VENTA', COUNT(*) FROM BOLETO_VENTA;
 Edita el archivo ubicado en: `src/main/resources/application.properties`
 
 ```properties
-# Configuración de la base de datos Oracle
-spring.datasource.url=jdbc:oracle:thin:@//localhost:1521/XEPDB1
+# Datasource Oracle
+spring.datasource.url=jdbc:oracle:thin:@//localhost:1521/{TU_SID}
 spring.datasource.username=cine_admin
 spring.datasource.password=CineAdmin2025
 spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
-
-# Configuración de JPA/Hibernate
-spring.jpa.database-platform=org.hibernate.dialect.Oracle12cDialect
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-
-# Configuración del servidor
-server.port=8080
 ```
 
-### Notas Importantes sobre la Configuración
-
-1. **Service Name:** Debe ser `XEPDB1` (no `XE`). Este es el nombre del Pluggable Database.
-
-2. **Usuario:** Debe ser `cine_admin` (no `system`). El usuario `system` es solo para tareas administrativas.
-
-3. **ddl-auto:** Configurado como `validate`. Esto significa que Hibernate validará que el esquema de la base de datos coincida con las entidades Java, pero no modificará la estructura. Las tablas se crean mediante los scripts SQL.
-
-4. **show-sql:** Configurado como `true` para ver las consultas SQL en la consola durante el desarrollo. Puedes cambiarlo a `false` en producción.
-
----
-
-## Resetear la Base de Datos
+## Solución de Problemas
+### Resetear la Base de Datos
 
 Si necesitas reiniciar desde cero (por ejemplo, si cometiste algún error durante la instalación):
 
@@ -299,120 +256,3 @@ Este comando elimina el usuario `cine_admin` y todos los objetos de base de dato
 ### Paso 2: Volver a Ejecutar los Scripts
 
 Sigue nuevamente todos los pasos desde la sección "Ejecución de Scripts SQL".
-
----
-
-## Solución de Problemas Comunes
-
-### Error: "ORA-01918: user 'cine_admin' does not exist"
-
-**Causa:** Este error aparece cuando intentas eliminar el usuario `cine_admin` pero no existe en la base de datos.
-
-**Solución:** Este error es normal si es la primera vez que ejecutas el script `01_crear_usuario.sql`. El script intenta eliminar el usuario antes de crearlo para asegurar un estado limpio. Puedes ignorar este error.
-
-### Error: "ORA-00942: table or view does not exist"
-
-**Causa:** Estás intentando ejecutar un script DML antes de crear las tablas, o estás conectado con el usuario incorrecto.
-
-**Soluciones:**
-1. Verifica que ejecutaste todos los scripts DDL (02, 03, 04) antes de los scripts DML.
-2. Verifica que estás conectado como `cine_admin` y no como `system`.
-3. Ejecuta este query para verificar tu usuario actual:
-   ```sql
-   SELECT USER FROM DUAL;
-   ```
-
-### Error: "ORA-02291: integrity constraint violated - parent key not found"
-
-**Causa:** Estás intentando insertar datos en una tabla antes de insertar los datos en las tablas de las que depende (tablas padre).
-
-**Solución:** Ejecuta los scripts DML en el orden exacto indicado. Por ejemplo, debes ejecutar `07_datos_clientes.sql` antes de `08_datos_ventas.sql`, porque la tabla VENTA tiene una Foreign Key hacia CLIENTE.
-
-### Error: "ORA-00001: unique constraint violated"
-
-**Causa:** Estás intentando ejecutar un script DML por segunda vez, lo que causaría datos duplicados.
-
-**Soluciones:**
-1. Si quieres agregar más datos, modifica los scripts para usar nuevos IDs.
-2. Si quieres empezar de nuevo, sigue el procedimiento de "Resetear la Base de Datos".
-
-### El contenedor Docker no responde
-
-**Verificar estado:**
-```bash
-docker ps
-```
-
-Deberías ver el contenedor `oracle-xe` en estado "Up".
-
-**Ver logs del contenedor:**
-```bash
-docker logs oracle-xe
-```
-
-**Reiniciar el contenedor:**
-```bash
-docker restart oracle-xe
-```
-
-**Nota:** Después de reiniciar el contenedor, espera 30-60 segundos antes de intentar conectarte, ya que Oracle necesita tiempo para iniciar completamente.
-
-### No puedo conectarme con SQL Developer
-
-**Verificaciones:**
-1. Asegúrate de que el contenedor Docker está corriendo (`docker ps`)
-2. Verifica que el puerto 1521 no esté siendo usado por otro servicio
-3. Confirma que estás usando el Service Name correcto (`XEPDB1`, no `XE`)
-4. Verifica las credenciales:
-   - Para SYSTEM: `system` / `CineTicketsAPI`
-   - Para CINE_ADMIN: `cine_admin` / `CineAdmin2025`
-
----
-
-## Arquitectura de la Base de Datos
-
-### Diagrama de Entidades
-
-El sistema cuenta con 11 tablas distribuidas en los siguientes módulos:
-
-**Módulo de Contenido:**
-- GENERO: Clasificación de películas
-- CATALOGO: Agrupaciones de películas (cartelera, próximos estrenos, etc.)
-- PELICULA: Información de películas
-- PELICULA_CATALOGO: Relación N:N entre películas y catálogos
-
-**Módulo de Infraestructura:**
-- SALA_DE_CINE: Salas del cine
-- ASIENTO: Asientos por sala
-- FUNCION: Horarios de proyección
-
-**Módulo de Ventas:**
-- CLIENTE: Clientes registrados
-- VENTA: Transacciones de venta
-- BOLETO: Boletos individuales
-- BOLETO_VENTA: Relación N:N entre boletos y ventas
-
-### Relaciones Principales
-
-1. Una PELICULA pertenece a un GENERO (N:1)
-2. Una PELICULA puede estar en múltiples CATALOGOS (N:N)
-3. Una SALA_DE_CINE tiene múltiples ASIENTOS (1:N)
-4. Una FUNCION proyecta una PELICULA en una SALA (N:1:1)
-5. Un BOLETO se emite para una FUNCION y un ASIENTO específico (N:1:1)
-6. Una VENTA puede incluir múltiples BOLETOS (N:N)
-
----
-
-## Contribuidores
-
-**Scripts de Base de Datos (DDL/DML):**
-- Tatiana Carolina Martínez Franco (MF24026)
-
-**Documentación:**
-- Equipo de desarrollo CineTicketsAPI
-
----
-
-## Historial de Versiones
-
-- **v1.0** (2025): Versión inicial con 11 tablas y datos de prueba
