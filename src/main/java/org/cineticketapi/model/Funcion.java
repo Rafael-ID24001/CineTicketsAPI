@@ -7,9 +7,9 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 
-// --- IMPORTS CRÍTICOS ---
-import org.cineticketapi.model.Pelicula;
-import org.cineticketapi.model.SalaDeCine;
+// --- NO SE DEBEN IMPORTAR LAS OTRAS ENTIDADES ---
+// import org.cineticketapi.model.Pelicula;         <-- BORRA ESTO
+// import org.cineticketapi.model.SalaDeCine;       <-- BORRA ESTO
 // --- FIN DE LA CORRECCIÓN ---
 
 @Entity
@@ -27,17 +27,14 @@ public class Funcion {
     @Column(name = "id_funcion")
     private Long idFuncion;
 
-    // --- CAMBIO IMPORTANTE 1 ---
-    // Corregir el mapeo de Pelicula
-    @ManyToOne
-    @JoinColumn(name = "ID_PELICULA", nullable = false)
-    private Pelicula pelicula;
+    // --- ESTA ES LA VERSIÓN QUE DEBES DEJAR ---
+    // Mantiene solo los IDs, sin @ManyToOne
+    @Column(name = "id_pelicula", nullable = false)
+    private Long idpelicula;
 
-    // --- CAMBIO IMPORTANTE 2 ---
-    // Corregir el mapeo de SalaDeCine (Este era el error)
-    @ManyToOne
-    @JoinColumn(name = "ID_SALA", nullable = false)
-    private SalaDeCine salaDeCine;
+    @Column(name = "id_sala", nullable = false)
+    private Long idSala;
+    // --- FIN DE LA VERSIÓN CORRECTA ---
 
     @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora;
