@@ -7,10 +7,6 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 
-// --- NO SE DEBEN IMPORTAR LAS OTRAS ENTIDADES ---
-// import org.cineticketapi.model.Pelicula;         <-- BORRA ESTO
-// import org.cineticketapi.model.SalaDeCine;       <-- BORRA ESTO
-// --- FIN DE LA CORRECCIÓN ---
 
 @Entity
 @Table(name = "FUNCION")
