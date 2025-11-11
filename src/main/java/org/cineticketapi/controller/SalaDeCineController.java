@@ -1,7 +1,5 @@
 package org.cineticketapi.controller;
 
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.cineticketapi.dto.ApiResponse;
 import org.cineticketapi.dto.SalaCineDto;
 import org.cineticketapi.dto.validationTypes.CreateValidation;
@@ -9,6 +7,7 @@ import org.cineticketapi.dto.validationTypes.UpdateValidation;
 import org.cineticketapi.exception.ApiException;
 import org.cineticketapi.service.SalaDeCineService;
 import org.cineticketapi.util.Constants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +17,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/saladecine")
-@RequiredArgsConstructor
 public class SalaDeCineController extends BaseController {
-    private final SalaDeCineService salaCineService;
 
-    @GetMapping("/obtenerSalas")
+    @Autowired
+    private SalaDeCineService salaCineService;
+
+    @GetMapping("/listar")
     public ResponseEntity<ApiResponse<?>> getSalas() {
         try {
             List<SalaCineDto> salasList = salaCineService.getSalas();
@@ -33,7 +33,7 @@ public class SalaDeCineController extends BaseController {
         }
     }
 
-    @PostMapping("/crearSala")
+    @PostMapping("/crear")
     public ResponseEntity<ApiResponse<?>> createSala(@Validated(CreateValidation.class) @RequestBody SalaCineDto salaDto) {
         try {
             Optional<SalaCineDto> sala = salaCineService.createSala(salaDto);
@@ -45,7 +45,7 @@ public class SalaDeCineController extends BaseController {
         }
     }
 
-    @PutMapping("/actualizarSala")
+    @PutMapping("/actualizar")
     public ResponseEntity<ApiResponse<?>> updateSala(@Validated(UpdateValidation.class) @RequestBody SalaCineDto salaDto) {
         try {
             Optional<SalaCineDto> sala = salaCineService.update(salaDto);
@@ -57,7 +57,7 @@ public class SalaDeCineController extends BaseController {
         }
     }
 
-    @DeleteMapping("/eliminarSala/{salaCineId}")
+    @DeleteMapping("/eliminar/{salaCineId}")
     public ResponseEntity<ApiResponse<?>> deleteSala(@PathVariable("salaCineId")  Long salaCineId) {
         try {
             Long salaDeleted = salaCineService.deleteSala(salaCineId);

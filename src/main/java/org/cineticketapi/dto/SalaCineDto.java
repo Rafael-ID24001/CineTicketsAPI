@@ -1,9 +1,6 @@
 package org.cineticketapi.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +23,7 @@ public class SalaCineDto {
 
     @NotNull(message = "Es obligatoria.", groups = CreateValidation.class)
     @Positive(message = "Debe ser un valor positivo mayor a 0.", groups = CreateValidation.class)
+    @Min(message = "Capacidad minima {value}", value = 50, groups = CreateValidation.class)
     private Integer capacidadTotal;
 
     @NotBlank(message = "Es sala obligatorio y no puede estar vacío. Valores permitidos: REGULAR, VIP, 3D, IMAX, 4DX", groups = CreateValidation.class)

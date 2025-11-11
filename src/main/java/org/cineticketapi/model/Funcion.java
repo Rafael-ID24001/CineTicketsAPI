@@ -5,8 +5,8 @@ import lombok.*;
 import org.cineticketapi.util.enums.ModelEnums;
 import org.hibernate.annotations.DynamicUpdate;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 
 @Entity
 @Table(name = "FUNCION")
@@ -23,23 +23,20 @@ public class Funcion {
     @Column(name = "id_funcion")
     private Long idFuncion;
 
-    // --- ESTA ES LA VERSIÓN QUE DEBES DEJAR ---
-    // Mantiene solo los IDs, sin @ManyToOne
     @Column(name = "id_pelicula", nullable = false)
-    private Long idpelicula;
+    private Long idPelicula;
 
     @Column(name = "id_sala", nullable = false)
     private Long idSala;
-    // --- FIN DE LA VERSIÓN CORRECTA ---
 
     @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora;
 
-    @Column(name = "precio_boleto", nullable = false)
-    private Double precioBoleto;
+    @Column(name = "precio_boleto", nullable = false, precision = 6, scale = 2)
+    private BigDecimal precioBoleto;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private ModelEnums.EstadoFuncion estado = ModelEnums.EstadoFuncion.PROGRAMADA;
+    private ModelEnums.EstadoFuncion estado;
 
 }

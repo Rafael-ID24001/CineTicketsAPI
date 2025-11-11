@@ -1,63 +1,90 @@
 package org.cineticketapi.service;
 
-import org.cineticketapi.model.Funcion; // <-- Necesario para el CRUD
+import jakarta.transaction.Transactional;
+import org.cineticketapi.dto.FuncionReqDto;
+import org.cineticketapi.dto.FuncionRespDto;
+import org.cineticketapi.exception.ApiException;
+import org.cineticketapi.mapper.FuncionMapper;
+import org.cineticketapi.model.Funcion;
+import org.cineticketapi.projections.FuncionProjection;
 import org.cineticketapi.repository.FuncionRepository;
-import org.cineticketapi.view.FuncionDetalleView; // <-- 1. Importa tu View
+import org.cineticketapi.util.Constants;
+import org.cineticketapi.util.enums.ModelEnums;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class FuncionService {
-
     @Autowired
     private FuncionRepository funcionRepository;
+    @Autowired
+    private FuncionMapper funcionMapper;
 
-    // --- MÉTODOS DE LECTURA (GET) USANDO EL VIEW ---
+    public List<FuncionRespDto> getFunciones() {
 
-    /**
-     * Obtiene una función con detalles (película y sala) por su ID.
-     */
-    public FuncionDetalleView obtenerFuncionDetallePorId(Long funcionId) {
-        
-        // 2. Llama al nuevo método del repositorio
-        return funcionRepository.findFuncionDetalleById(funcionId)
-            .orElseThrow(() -> new RuntimeException(
-                "Función no encontrada con id: " + funcionId));
+        List<FuncionProjection> listFunciones = funcionRepository.getFuncionesDetalles();
+
+        return listFunciones.stream().map(funcionMapper::toFuncionRespDto).toList();
+    }
+
+    public Optional<FuncionRespDto> findFuncionById(Long idSala) {
+        Optional<Funcion> existFuncion = funcionRepository.findById(idSala);
+        if (!existFuncion.isPresent()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Registro no encontrada");
+        }
+
+        Optional<FuncionProjection> funcionDetails = funcionRepository.getFuncionDetallesByIdFuncion(idSala);
+
+        return Optional.ofNullable(funcionMapper.toFuncionRespDto(funcionDetails.get()));
     }
     
-    /**
-     * Obtiene TODAS las funciones con sus detalles.
-     */
-    public List<FuncionDetalleView> obtenerTodasLasFuncionesDetalle() {
-        
-        // 3. Llama al otro método nuevo del repositorio
-        return funcionRepository.findAllFuncionDetalle();
-    }
-    
-    // --- MÉTODOS DE ESCRITURA (CRUD) USANDO LA ENTIDAD ---
-    // (Estos métodos de crear, actualizar o borrar
-    //  siguen usando la entidad 'Funcion' normal)
+    public Optional<FuncionRespDto> createFuncion(FuncionReqDto reqDto) {
 
-    /**
-     * Crea una nueva función.
-     * (Aquí recibirías un DTO/View de entrada, pero 
-     * guardas la entidad 'Funcion')
-     */
-    public Funcion crearFuncion(Funcion funcion) {
-        // Aquí iría tu lógica para guardar...
-        // Por ejemplo, recibir un 'FuncionCreateDTO',
-        // convertirlo a 'Funcion', y guardarlo.
-        return funcionRepository.save(funcion);
-    }
-    
-    /**
-     * Borra una función por ID.
-     */
-    public void borrarFuncion(Long funcionId) {
-        funcionRepository.deleteById(funcionId);
+        /* verificar si hay una funcion programada con la misma informacion*/
+        Optional<Funcion> existFuncion = funcionRepository.findByIdPeliculaAndIdSalaEqualsAndFechaHora
+                                        (reqDto.getIdPelicula(), reqDto.getIdSala(), reqDto.getFechaHora());
+
+        if (existFuncion.isPresent() &&
+                (existFuncion.get().getEstado() != ModelEnums.EstadoFuncion.CANCELADA||
+                existFuncion.get().getEstado() != ModelEnums.EstadoFuncion.FINALIZADA)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Ya existe un registro con la misma informacion");
+        }
+
+        Funcion createdFuncion = funcionRepository.save(funcionMapper.forCreation(reqDto));
+
+        Optional<FuncionProjection> funcionProj = funcionRepository.getFuncionDetallesByIdFuncion(createdFuncion.getIdFuncion());
+
+        return Optional.ofNullable(funcionMapper.toFuncionRespDto(funcionProj.get()));
     }
 
-    // ... etc. para tus otros métodos CRUD ...
+    public Optional<FuncionRespDto> updateFuncion(Long idFuncion, String estadoFuncion) {
+        Optional<Funcion> funcionExist = funcionRepository.findById(idFuncion);
+
+        if (!funcionExist.isPresent()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, Constants.MSG_REGISTRO_NO_ENCONTRADO);
+        }
+
+        funcionExist.get().setEstado(ModelEnums.EstadoFuncion.valueOf(estadoFuncion));
+
+        Funcion createdFuncion = funcionRepository.save(funcionExist.get());
+        Optional<FuncionProjection> updatedFuncion = funcionRepository.getFuncionDetallesByIdFuncion(createdFuncion.getIdFuncion());
+
+        return Optional.ofNullable(funcionMapper.toFuncionRespDto(updatedFuncion.get()));
+    }
+
+    public Long deleteFuncion(Long idFuncion) {
+        Optional<FuncionRespDto> deletedFuncion =
+                this.updateFuncion(idFuncion, String.valueOf(ModelEnums.EstadoFuncion.CANCELADA));
+        return deletedFuncion.get().getIdFuncion();
+    }
+
+    public int actualizarEstadoFuncionFutura(Long idSalaCine, ModelEnums.EstadoFuncion estadoFuncion) {
+        return funcionRepository.actualizarEstadoFuncionesFuturas(idSalaCine, estadoFuncion);
+    }
+
 }

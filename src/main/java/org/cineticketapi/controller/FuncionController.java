@@ -1,55 +1,83 @@
 package org.cineticketapi.controller;
 
+import jakarta.validation.Valid;
+import org.cineticketapi.dto.ApiResponse;
+import org.cineticketapi.dto.FuncionReqDto;
+import org.cineticketapi.dto.FuncionRespDto;
+import org.cineticketapi.exception.ApiException;
 import org.cineticketapi.service.FuncionService;
-import org.cineticketapi.view.FuncionDetalleView; // <-- 1. Importa tu View
+import org.cineticketapi.util.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/funciones") // <-- Ruta base para todas las funciones
-public class FuncionController {
+@RequestMapping("/funcionescine")
+public class FuncionController extends BaseController{
 
     @Autowired
-    private FuncionService funcionService; // <-- 2. Inyecta el Servicio
+    private FuncionService funcionService;
 
-    /**
-     * Endpoint para OBTENER una función por ID con sus detalles.
-     * EJ: GET http://localhost:8080/api/funciones/1
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<FuncionDetalleView> getFuncionDetallePorId(@PathVariable Long id) {
-        
-        // 3. Llama al método del servicio
-        FuncionDetalleView funcionView = funcionService.obtenerFuncionDetallePorId(id);
-        
-        // 4. Retorna el View. Spring Boot lo convertirá a JSON automáticamente.
-        return ResponseEntity.ok(funcionView);
+    @GetMapping("/listar")
+    public ResponseEntity<ApiResponse<?>> getFunciones() {
+        try {
+            List<FuncionRespDto> funcionList = funcionService.getFunciones();
+            return ResponseEntity.ok(okApiResponse(funcionList));
+        } catch (Exception e) {
+            String message = Constants.MSG_ERROR_500 + e.getMessage();
+            return ResponseEntity.internalServerError().body(errorApiResponse(message, null));
+        }
     }
 
-    /**
-     * Endpoint para OBTENER TODAS las funciones con sus detalles.
-     * EJ: GET http://localhost:8080/api/funciones
-     */
-    @GetMapping
-    public ResponseEntity<List<FuncionDetalleView>> getAllFuncionesDetalle() {
-        
-        // 5. Llama al otro método del servicio
-        List<FuncionDetalleView> funciones = funcionService.obtenerTodasLasFuncionesDetalle();
-        
-        return ResponseEntity.ok(funciones);
+    @GetMapping("/buscar/{idFuncion}")
+    public ResponseEntity<ApiResponse<?>> getFuncionByID(@PathVariable("idFuncion") Long idFuncion) {
+        try {
+            Optional<FuncionRespDto> funcion = funcionService.findFuncionById(idFuncion);
+            return ResponseEntity.ok(okApiResponse(funcion.get()));
+        } catch (ApiException ex) {
+            return apiExceptionResponse(ex.getStatus(), ex.getMessage(), ex.getData());
+        } catch (Exception e) {
+            String message = Constants.MSG_ERROR_500 + e.getMessage();
+            return ResponseEntity.internalServerError().body(errorApiResponse(message, null));
+        }
     }
 
-    // ... Aquí irían tus otros endpoints (POST, PUT, DELETE)
-    // Por ejemplo, para crear una función:
-    /*
-    @PostMapping
-    public ResponseEntity<Funcion> createFuncion(@RequestBody FuncionCreateDTO dto) {
-        // ... lógica para convertir DTO a entidad y llamar al servicio ...
-        Funcion nuevaFuncion = funcionService.crearFuncion(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaFuncion);
+    @PostMapping("/crear")
+    public ResponseEntity<ApiResponse<?>> createSala(@Valid @RequestBody FuncionReqDto reqDto) {
+        try {
+            Optional<FuncionRespDto> funcion = funcionService.createFuncion(reqDto);
+            return ResponseEntity.created(null).body(createdApiResponse(funcion.get()));
+        } catch (ApiException ex) {
+            return apiExceptionResponse(ex.getStatus(), ex.getMessage(), ex.getData());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(errorApiResponse(e.getMessage(), null));
+        }
     }
-    */
+
+    @PutMapping("/actualizar")
+    public ResponseEntity<ApiResponse<?>> updateSala(@RequestParam Long idFuncion, String estadoFuncion) {
+        try {
+            Optional<FuncionRespDto> sala = funcionService.updateFuncion(idFuncion, estadoFuncion.toUpperCase());
+            return ResponseEntity.ok(okApiResponse(sala.get()));
+        } catch (ApiException ex) {
+            return apiExceptionResponse(ex.getStatus(), ex.getMessage(), ex.getData());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(errorApiResponse(e.getMessage(), null));
+        }
+    }
+
+    @DeleteMapping("/eliminar/{idFuncion}")
+    public ResponseEntity<ApiResponse<?>> deleteSala(@PathVariable("idFuncion")  Long idFuncion) {
+        try {
+            Long funcionDeleted = funcionService.deleteFuncion(idFuncion);
+            return ResponseEntity.ok(okApiResponse(funcionDeleted));
+        } catch (ApiException ex) {
+            return apiExceptionResponse(ex.getStatus(), ex.getMessage(), ex.getData());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(errorApiResponse(e.getMessage(), null));
+        }
+    }
 }
