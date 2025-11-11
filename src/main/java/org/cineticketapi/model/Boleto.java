@@ -7,16 +7,6 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
 
-// --- IMPORTS CRÍTICOS QUE FALTABAN ---
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
-// (Estas 3 líneas son la corrección. Java necesita saber dónde encontrar estas clases)
-import org.cineticketapi.model.Funcion;
-import org.cineticketapi.model.Cliente;
-import org.cineticketapi.model.Asiento;
-// --- FIN DE LA CORRECCIÓN ---
-
-
 @Entity
 @Table(name = "BOLETO")
 @DynamicUpdate
@@ -32,20 +22,14 @@ public class Boleto {
     @Column(name = "id_boleto")
     private Long idBoleto;
 
-    // --- CAMBIO IMPORTANTE 1 ---
-    @ManyToOne
-    @JoinColumn(name = "ID_FUNCION", nullable = false)
-    private Funcion funcion;
+    @Column(name = "id_funcion", nullable = false)
+    private Long idFuncion;
 
-    // --- CAMBIO IMPORTANTE 2 ---
-    @ManyToOne
-    @JoinColumn(name = "ID_CLIENTE", nullable = false)
-    private Cliente cliente;
+    @Column(name = "id_cliente", nullable = false)
+    private Long idCliente;
 
-    // --- CAMBIO IMPORTANTE 3 ---
-    @ManyToOne
-    @JoinColumn(name = "ID_ASIENTO", nullable = false)
-    private Asiento asiento;
+    @JoinColumn(name = "id_asiento", nullable = false)
+    private Long idAsiento;
 
     @Column(name = "fecha_compra", nullable = false)
     private LocalDate fechaCompra = LocalDate.now();

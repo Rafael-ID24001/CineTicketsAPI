@@ -9,70 +9,50 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class BoletoService {
 
-    @Autowired
-    private BoletoRepository boletoRepository;
+@Autowired                  
+    private  BoletoRepository boletoRepository;
+@Autowired     
+    private  BoletoMapper boletoMapper;
 
-    /**
-     * (GET /boletos)
-     * Obtiene todos los boletos.
-     */
-    public List<Boleto> getAllBoletos() {
-        return boletoRepository.findAll();
+    public List<BoletoDTO> findAll() {
+        return boletoRepository.findAll()
+                .stream()
+                .map(boletoMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * (GET /boletos/{id})
-     * Busca un boleto por su ID.
-     */
-    public Optional<Boleto> getBoletoById(Long id) {
-        return boletoRepository.findById(id);
+    public BoletoDTO findById(Long id) {
+        return boletoRepository.findById(id)
+                .map(boletoMapper::toDto)
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado con ID: " + id));
     }
 
-    /**
-     * (POST /boletos)
-     * Guarda un nuevo boleto.
-     * Nota: El JSON debe incluir IDs válidos para funcion, cliente y asiento.
-     */
-    public Boleto createBoleto(Boleto boleto) {
-        // Aquí se podrían agregar validaciones (ej. verificar que el asiento esté disponible)
-        return boletoRepository.save(boleto);
+    public BoletoDTO create(BoletoDTO boletoDTO) {
+        Boleto boleto = boletoMapper.toEntity(boletoDTO);
+        boleto.setIdBoleto(null); // aseguramos que se cree nuevo
+        return boletoMapper.toDto(boletoRepository.save(boleto));
     }
 
-    /**
-     * (PUT /boletos/{id})
-     * Actualiza un boleto existente.
-     * (Solo actualiza los campos simples como 'estado', las llaves foráneas son más complejas)
-     */
-    public Optional<Boleto> updateBoleto(Long id, Boleto boletoDetails) {
-        Optional<Boleto> optionalBoleto = boletoRepository.findById(id);
+    public BoletoDTO update(Long id, BoletoDTO boletoDTO) {
+        Boleto existente = boletoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado con ID: " + id));
 
-        if (optionalBoleto.isPresent()) {
-            Boleto boletoExistente = optionalBoleto.get();
-            
-            // Actualizamos los campos que pueden cambiar
-            boletoExistente.setEstado(boletoDetails.getEstado());
-            // (Puedes agregar más setters aquí si es necesario)
-            
-            Boleto boletoActualizado = boletoRepository.save(boletoExistente);
-            return Optional.of(boletoActualizado);
-        } else {
-            return Optional.empty(); // No se encontró el boleto
+        existente.setFuncion(boletoMapper.toEntity(boletoDTO).getFuncion());
+        existente.setCliente(boletoMapper.toEntity(boletoDTO).getCliente());
+        existente.setAsiento(boletoMapper.toEntity(boletoDTO).getAsiento());
+        existente.setEstado(boletoDTO.getEstado());
+
+        return boletoMapper.toDto(boletoRepository.save(existente));
+    }
+
+    public void delete(Long id) {
+        if (!boletoRepository.existsById(id)) {
+            throw new RuntimeException("Boleto no encontrado con ID: " + id);
         }
-    }
-
-    /**
-     * (DELETE /boletos/{id})
-     * Borra un boleto por su ID.
-     * @return true si fue borrado, false si no se encontró.
-     */
-    public boolean deleteBoleto(Long id) {
-        if (boletoRepository.existsById(id)) {
-            boletoRepository.deleteById(id);
-            return true;
-        } else {
-            return false;
-        }
+        boletoRepository.deleteById(id);
     }
 }
+
