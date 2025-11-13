@@ -5,11 +5,10 @@ import lombok.*;
 import org.cineticketapi.util.enums.ModelEnums;
 import org.hibernate.annotations.DynamicUpdate;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-// --- IMPORTS CRÍTICOS ---
-import org.cineticketapi.model.Cliente;
-// --- FIN DE LA CORRECCIÓN ---
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "VENTA")
@@ -26,17 +25,14 @@ public class Venta {
     @Column(name = "id_venta")
     private Long idVenta;
 
-    // --- CAMBIO IMPORTANTE ---
-    // En lugar de "private Long idCliente;"
-    @ManyToOne
-    @JoinColumn(name = "ID_CLIENTE", nullable = false)
-    private Cliente cliente;
+    @Column(name = "id_cliente", nullable = false)
+    private Long idCliente;
 
     @Column(name = "fecha_venta", nullable = false)
     private LocalDateTime fechaVenta = LocalDateTime.now();
 
-    @Column(name = "total", nullable = false)
-    private Double total;
+    @Column(name = "total", nullable = false, precision = 8, scale = 2)
+    private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "metodo_pago", nullable = false)

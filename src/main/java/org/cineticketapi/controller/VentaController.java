@@ -1,5 +1,8 @@
 package org.cineticketapi.controller;
 
+import jakarta.validation.Valid;
+import org.cineticketapi.dto.VentaRequestDTO;
+import org.cineticketapi.dto.VentaResponseDTO;
 import org.cineticketapi.model.Venta;
 import org.cineticketapi.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,47 +20,42 @@ public class VentaController {
     @Autowired
     private VentaService ventaService;
 
-    // GET (Todos)
+
     @GetMapping
-    public List<Venta> getAllVentas() {
-        return ventaService.getAllVentas();
+    public ResponseEntity<List<VentaResponseDTO>> getAllVentas() {
+        List<VentaResponseDTO> ventas = ventaService.findAll();
+        return ResponseEntity.ok(ventas);
     }
 
-    // GET (Uno por ID)
     @GetMapping("/{id}")
-    public ResponseEntity<Venta> getVentaById(@PathVariable Long id) {
-        Optional<Venta> venta = ventaService.getVentaById(id);
-        return venta.map(ResponseEntity::ok)
-                    .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<VentaResponseDTO> getVentaById(@PathVariable Long id) {
+        VentaResponseDTO venta = ventaService.findById(id);
+        return ResponseEntity.ok(venta);
     }
 
-    // POST (Crear)
+    @GetMapping("/cliente/{idCliente}")
+    public ResponseEntity<List<VentaResponseDTO>> getVentasByCliente(@PathVariable Long idCliente) {
+        List<VentaResponseDTO> ventas = ventaService.findByCliente(idCliente);
+        return ResponseEntity.ok(ventas);
+    }
+
     @PostMapping
-    public ResponseEntity<Venta> createVenta(@RequestBody Venta venta) {
-        try {
-            Venta nuevaVenta = ventaService.createVenta(venta);
-            return new ResponseEntity<>(nuevaVenta, HttpStatus.CREATED);
-        } catch (Exception e) {
-            // Error si el ID de cliente no existe
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<VentaResponseDTO> createVenta(@Valid @RequestBody VentaRequestDTO request) {
+        VentaResponseDTO nuevaVenta = ventaService.create(request);
+        return new ResponseEntity<>(nuevaVenta, HttpStatus.CREATED);
     }
 
-    // PUT (Actualizar)
     @PutMapping("/{id}")
-    public ResponseEntity<Venta> updateVenta(@PathVariable Long id, @RequestBody Venta ventaDetails) {
-        Optional<Venta> ventaActualizada = ventaService.updateVenta(id, ventaDetails);
-        return ventaActualizada.map(ResponseEntity::ok)
-                               .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<VentaResponseDTO> updateVenta(
+            @PathVariable Long id,
+            @Valid @RequestBody VentaRequestDTO request) {
+        VentaResponseDTO ventaActualizada = ventaService.update(id, request);
+        return ResponseEntity.ok(ventaActualizada);
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteVenta(@PathVariable Long id) {
-        if (ventaService.deleteVenta(id)) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 404
-        }
+        ventaService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

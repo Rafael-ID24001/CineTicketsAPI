@@ -1,5 +1,9 @@
 package org.cineticketapi.service;
 
+import jakarta.transaction.Transactional;
+import org.cineticketapi.dto.ClienteRequestDTO;
+import org.cineticketapi.dto.ClienteResponseDTO;
+import org.cineticketapi.mapper.ClienteMapper;
 import org.cineticketapi.model.Cliente;
 import org.cineticketapi.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,72 +11,66 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ClienteService {
 
     @Autowired
     private ClienteRepository clienteRepository;
+    @Autowired
+    private ClienteMapper clienteMapper;
 
-    /**
-     * (GET /clientes)
-     * Obtiene todos los clientes de la base de datos.
-     */
-    public List<Cliente> getAllClientes() {
-        return clienteRepository.findAll();
+    public List<ClienteResponseDTO> findAll() {
+        return clienteRepository.findAll()
+                .stream()
+                .map(clienteMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * (POST /clientes)
-     * Guarda un nuevo cliente en la base de datos.
-     */
-    public Cliente createCliente(Cliente cliente) {
-        return clienteRepository.save(cliente);
+    public ClienteResponseDTO findById(Long id) {
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+        return clienteMapper.toResponse(cliente);
     }
 
-    /**
-     * (GET /clientes/{id})
-     * Busca un cliente por su ID.
-     */
-    public Optional<Cliente> getClienteById(Long id) {
-        return clienteRepository.findById(id);
-    }
-
-    /**
-     * (PUT /clientes/{id})
-     * Actualiza un cliente existente por su ID.
-     */
-    public Optional<Cliente> updateCliente(Long id, Cliente clienteDetails) {
-        Optional<Cliente> optionalCliente = clienteRepository.findById(id);
-
-        if (optionalCliente.isPresent()) {
-            Cliente clienteExistente = optionalCliente.get();
-            clienteExistente.setNombre(clienteDetails.getNombre());
-            clienteExistente.setEmail(clienteDetails.getEmail());
-            clienteExistente.setTelefono(clienteDetails.getTelefono());
-
-            Cliente clienteActualizado = clienteRepository.save(clienteExistente);
-            return Optional.of(clienteActualizado);
-        } else {
-            return Optional.empty();
+    public ClienteResponseDTO create(ClienteRequestDTO request) {
+        // Verificar si el email ya existe
+        if (clienteRepository.existsClienteByEmail(request.getEmail())) {
+            throw new RuntimeException("Ya existe un cliente con el email: " + request.getEmail());
         }
+
+        Cliente cliente = clienteMapper.toEntity(request);
+        Cliente savedCliente = clienteRepository.save(cliente);
+        return clienteMapper.toResponse(savedCliente);
     }
 
-    /**
-     * (DELETE /clientes/{id})
-     * Borra un cliente por su ID.
-     * @return true si fue borrado, false si no se encontró.
-     */
-    public boolean deleteCliente(Long id) {
-        // 1. Verificar si el cliente existe
-        if (clienteRepository.existsById(id)) {
-            // 2. Si existe, borrarlo
-            clienteRepository.deleteById(id);
-            return true;
-        } else {
-            // 3. Si no existe, devolver 'false'
-            return false;
+    public ClienteResponseDTO update(Long id, ClienteRequestDTO request) {
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+
+        // Verificar si el email ya existe en otro cliente
+        if (request.getEmail() != null &&
+                !request.getEmail().equals(cliente.getEmail()) &&
+                clienteRepository.existsClienteByEmail(request.getEmail())) {
+            throw new RuntimeException("Ya existe un cliente con el email: " + request.getEmail());
         }
+
+        clienteMapper.updateEntityFromRequest(request, cliente);
+        Cliente updatedCliente = clienteRepository.save(cliente);
+        return clienteMapper.toResponse(updatedCliente);
     }
 
-} // <-- ¡Asegúrate de que solo haya UNO de estos al final!
+    public void delete(Long id) {
+        if (!clienteRepository.existsById(id)) {
+            throw new RuntimeException("Cliente no encontrado con ID: " + id);
+        }
+        clienteRepository.deleteById(id);
+    }
+
+    public boolean existsByEmail(String email) {
+        return clienteRepository.existsClienteByEmail(email);
+    }
+
+}

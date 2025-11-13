@@ -1,5 +1,8 @@
 package org.cineticketapi.controller;
 
+import jakarta.validation.Valid;
+import org.cineticketapi.dto.ClienteRequestDTO;
+import org.cineticketapi.dto.ClienteResponseDTO;
 import org.cineticketapi.model.Cliente;
 import org.cineticketapi.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,68 +26,35 @@ public class ClienteController {
 
     @Autowired
     private ClienteService clienteService;
-
-    /**
-     * GET /clientes
-     */
     @GetMapping
-    public List<Cliente> getAllClientes() {
-        return clienteService.getAllClientes();
+    public ResponseEntity<List<ClienteResponseDTO>> getAllClientes() {
+        List<ClienteResponseDTO> clientes = clienteService.findAll();
+        return ResponseEntity.ok(clientes);
     }
 
-    /**
-     * POST /clientes
-     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ClienteResponseDTO> getClienteById(@PathVariable Long id) {
+        ClienteResponseDTO cliente = clienteService.findById(id);
+        return ResponseEntity.ok(cliente);
+    }
+
     @PostMapping
-    public ResponseEntity<Cliente> createCliente(@RequestBody Cliente cliente) {
-        Cliente nuevoCliente = clienteService.createCliente(cliente);
+    public ResponseEntity<ClienteResponseDTO> createCliente(@Valid @RequestBody ClienteRequestDTO request) {
+        ClienteResponseDTO nuevoCliente = clienteService.create(request);
         return new ResponseEntity<>(nuevoCliente, HttpStatus.CREATED);
     }
 
-    /**
-     * GET /clientes/{id}
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<Cliente> getClienteById(@PathVariable Long id) {
-        Optional<Cliente> cliente = clienteService.getClienteById(id);
-
-        if (cliente.isPresent()) {
-            return new ResponseEntity<>(cliente.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    /**
-     * PUT /clientes/{id}
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> updateCliente(@PathVariable Long id, @RequestBody Cliente clienteDetails) {
-        
-        Optional<Cliente> clienteActualizado = clienteService.updateCliente(id, clienteDetails);
-
-        if (clienteActualizado.isPresent()) {
-            return new ResponseEntity<>(clienteActualizado.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ClienteResponseDTO> updateCliente(
+            @PathVariable Long id,
+            @Valid @RequestBody ClienteRequestDTO request) {
+        ClienteResponseDTO clienteActualizado = clienteService.update(id, request);
+        return ResponseEntity.ok(clienteActualizado);
     }
 
-    /**
-     * DELETE /clientes/{id}
-     * Endpoint para borrar un cliente por su ID.
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCliente(@PathVariable Long id) {
-        
-        boolean fueBorrado = clienteService.deleteCliente(id);
-
-        if (fueBorrado) {
-            // 204 No Content (Éxito, pero no devuelve cuerpo)
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT); 
-        } else {
-            // 404 No Encontrado
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND); 
-        }
+        clienteService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
