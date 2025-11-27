@@ -1,9 +1,7 @@
 package org.cineticketapi.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.cineticketapi.dto.GeneroDto;
-import org.cineticketapi.model.Genero;
 import org.cineticketapi.service.GeneroService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,26 +16,22 @@ public class GeneroController {
 @Autowired
     private GeneroService service;
 
-    @GetMapping public List<Genero> listar(){ return service.listar(); }
+    @GetMapping public List<GeneroDto> listar(){ return service.listar(); }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Genero> uno(@PathVariable Long id){
+    public ResponseEntity<GeneroDto> uno(@PathVariable Long id){
         return service.obtenerPorId(id).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Genero> crear(@RequestBody @Valid Genero g){
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.guardar(g));
+    public ResponseEntity<GeneroDto> crear(@RequestBody @Valid GeneroDto g){
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.guardar(g).get());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Genero> actualizar(@PathVariable Long id, @RequestBody @Valid Genero body){
-        return service.obtenerPorId(id).map(db -> {
-            db.setNombre(body.getNombre());
-            db.setDescripcion(body.getDescripcion());
-            return ResponseEntity.ok(service.guardar(db));
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<GeneroDto> actualizar(@PathVariable Long id, @RequestBody @Valid GeneroDto body){
+        return ResponseEntity.ok(service.actualizar(body, id).get());
     }
 
     @DeleteMapping("/{id}")

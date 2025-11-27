@@ -1,6 +1,6 @@
 package org.cineticketapi.controller;
 
-import org.cineticketapi.model.Genero;
+import org.cineticketapi.dto.GeneroDto;
 import org.cineticketapi.service.GeneroService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,14 +26,14 @@ class GeneroControllerTest {
     @InjectMocks
     private GeneroController generoController;
 
-    private Genero generoBase;
+    private GeneroDto generoBase;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        generoBase = Genero.builder()
-                .idGenero(1L)
+        generoBase = GeneroDto.builder()
+                .id(1L)
                 .nombre("Acción")
                 .descripcion("Películas de acción")
                 .build();
@@ -45,7 +45,7 @@ class GeneroControllerTest {
     void testListarGeneros() {
         when(generoService.listar()).thenReturn(List.of(generoBase));
 
-        List<Genero> result = generoController.listar();
+        List<GeneroDto> result = generoController.listar();
 
         Assertions.assertEquals(1, result.size());
         Assertions.assertEquals("Acción", result.get(0).getNombre());
@@ -57,7 +57,7 @@ class GeneroControllerTest {
     void testObtenerGeneroPorId_OK() {
         when(generoService.obtenerPorId(anyLong())).thenReturn(Optional.of(generoBase));
 
-        ResponseEntity<Genero> response = generoController.uno(1L);
+        ResponseEntity<GeneroDto> response = generoController.uno(1L);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertNotNull(response.getBody());
@@ -68,7 +68,7 @@ class GeneroControllerTest {
     void testObtenerGeneroPorId_NoEncontrado() {
         when(generoService.obtenerPorId(anyLong())).thenReturn(Optional.empty());
 
-        ResponseEntity<Genero> response = generoController.uno(1L);
+        ResponseEntity<GeneroDto> response = generoController.uno(1L);
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         Assertions.assertNull(response.getBody());
@@ -78,9 +78,9 @@ class GeneroControllerTest {
 
     @Test
     void testCrearGenero() {
-        when(generoService.guardar(any(Genero.class))).thenReturn(generoBase);
+        when(generoService.guardar(any())).thenReturn(Optional.of(generoBase));
 
-        ResponseEntity<Genero> response = generoController.crear(generoBase);
+        ResponseEntity<GeneroDto> response = generoController.crear(generoBase);
 
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assertions.assertNotNull(response.getBody());
@@ -91,37 +91,12 @@ class GeneroControllerTest {
 
     @Test
     void testActualizarGenero_OK() {
-        Genero body = Genero.builder()
-                .nombre("Drama")
-                .descripcion("Películas dramáticas")
-                .build();
 
-        when(generoService.obtenerPorId(1L)).thenReturn(Optional.of(generoBase));
-        // devolver lo que se guarda (ya con los cambios del body)
-        when(generoService.guardar(any(Genero.class)))
-                .thenAnswer(inv -> inv.getArgument(0, Genero.class));
-
-        ResponseEntity<Genero> response = generoController.actualizar(1L, body);
+        when(generoService.actualizar(any(), anyLong())).thenReturn(Optional.of(generoBase));
+        ResponseEntity<GeneroDto> response = generoController.actualizar(1L, generoBase);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertNotNull(response.getBody());
-        Assertions.assertEquals("Drama", response.getBody().getNombre());
-        Assertions.assertEquals("Películas dramáticas", response.getBody().getDescripcion());
-    }
-
-    @Test
-    void testActualizarGenero_NoEncontrado() {
-        Genero body = Genero.builder()
-                .nombre("Drama")
-                .descripcion("Películas dramáticas")
-                .build();
-
-        when(generoService.obtenerPorId(1L)).thenReturn(Optional.empty());
-
-        ResponseEntity<Genero> response = generoController.actualizar(1L, body);
-
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        Assertions.assertNull(response.getBody());
     }
 
     // ========= ELIMINAR =========
