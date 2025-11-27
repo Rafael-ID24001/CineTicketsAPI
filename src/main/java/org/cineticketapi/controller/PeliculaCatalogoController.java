@@ -16,32 +16,37 @@ public class PeliculaCatalogoController {
 
     private final PeliculaCatalogoService peliculaCatalogoService;
 
-    // Obtener todas las películas
     @GetMapping
     public ResponseEntity<List<PeliculaCatalogoRespDto>> getAll() {
         return ResponseEntity.ok(peliculaCatalogoService.getPeliculas());
     }
 
-    // Obtener una película por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<PeliculaCatalogoRespDto> getById(@PathVariable Long id) {
-        return peliculaCatalogoService.getById(id)
+    @GetMapping("/{idPelicula}/{idCatalogo}")
+    public ResponseEntity<PeliculaCatalogoRespDto> getById(
+            @PathVariable Long idPelicula,
+            @PathVariable Long idCatalogo
+    ) {
+        return peliculaCatalogoService.getById(idPelicula, idCatalogo)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Crear una nueva película
     @PostMapping
-    public ResponseEntity<PeliculaCatalogoRespDto> create(@RequestBody PeliculaCatalogoReqDto dto) {
+    public ResponseEntity<PeliculaCatalogoRespDto> create(
+            @RequestBody PeliculaCatalogoReqDto dto
+    ) {
         return peliculaCatalogoService.create(dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.badRequest().build());
     }
 
-    // Eliminar una película por ID
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
-        peliculaCatalogoService.delete(id);
+    @DeleteMapping("/{idPelicula}/{idCatalogo}")
+    public ResponseEntity<String> delete(
+            @PathVariable Long idPelicula,
+            @PathVariable Long idCatalogo
+    ) {
+        peliculaCatalogoService.delete(idPelicula, idCatalogo);
         return ResponseEntity.ok("Película eliminada con éxito");
+
     }
 }

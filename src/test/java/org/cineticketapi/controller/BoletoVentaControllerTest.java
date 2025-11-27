@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class BoletoVentaControllerTest {
 
@@ -32,49 +32,69 @@ class BoletoVentaControllerTest {
 
     @Test
     void testGetAll() {
-        List<BoletoVentaRespDto> mockList = Arrays.asList(new BoletoVentaRespDto());
-        when(boletoVentaService.getBoletos()).thenReturn(mockList);
+        List<BoletoVentaRespDto> lista = Arrays.asList(new BoletoVentaRespDto());
+        when(boletoVentaService.getBoletos()).thenReturn(lista);
 
         ResponseEntity<List<BoletoVentaRespDto>> response = boletoVentaController.getAll();
 
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(mockList, response.getBody());
+        assertEquals(lista, response.getBody());
     }
 
     @Test
     void testGetById() {
-        Long id = 1L;
-        BoletoVentaRespDto mockDto = new BoletoVentaRespDto();
+        Long idBoleto = 1L;
+        Long idVenta = 1L;
+        BoletoVentaRespDto dto = new BoletoVentaRespDto();
 
-        when(boletoVentaService.getBoletoById(id)).thenReturn(Optional.of(mockDto));
+        when(boletoVentaService.getBoletoById(idBoleto, idVenta))
+                .thenReturn(Optional.of(dto));
 
-        ResponseEntity<BoletoVentaRespDto> response = boletoVentaController.getById(id);
+        ResponseEntity<BoletoVentaRespDto> response =
+                boletoVentaController.getById(idBoleto, idVenta);
 
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(mockDto, response.getBody());
+        assertEquals(dto, response.getBody());
+    }
+
+    @Test
+    void testGetById_NotFound() {
+        when(boletoVentaService.getBoletoById(1L, 1L))
+                .thenReturn(Optional.empty());
+
+        ResponseEntity<BoletoVentaRespDto> response =
+                boletoVentaController.getById(1L, 1L);
+
+        assertEquals(404, response.getStatusCodeValue());
     }
 
     @Test
     void testCreate() {
         BoletoVentaReqDto req = new BoletoVentaReqDto();
-        BoletoVentaRespDto mockResp = new BoletoVentaRespDto();
+        BoletoVentaRespDto dto = new BoletoVentaRespDto();
 
-        when(boletoVentaService.createBoleto(req)).thenReturn(Optional.of(mockResp));
+        when(boletoVentaService.createBoleto(req)).thenReturn(Optional.of(dto));
 
-        ResponseEntity<BoletoVentaRespDto> response = boletoVentaController.create(req);
+        ResponseEntity<BoletoVentaRespDto> response =
+                boletoVentaController.create(req);
 
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(mockResp, response.getBody());
+        assertEquals(dto, response.getBody());
     }
 
     @Test
     void testDelete() {
-        when(boletoVentaService.deleteBoleto(1L)).thenReturn(1L);
+        Long idBoleto = 1L;
+        Long idVenta = 1L;
 
-        ResponseEntity<String> response = boletoVentaController.delete(1L);
+        //  Para métodos void se usa doNothing()
+        doNothing().when(boletoVentaService).deleteBoleto(idBoleto, idVenta);
 
-        assertEquals(200, response.getStatusCode().value());
+        ResponseEntity<String> response =
+                boletoVentaController.delete(idBoleto, idVenta);
+
+        assertEquals(200, response.getStatusCodeValue());
         assertEquals("Boleto eliminado con éxito", response.getBody());
+        verify(boletoVentaService, times(1)).deleteBoleto(idBoleto, idVenta);
     }
-
 }

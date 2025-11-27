@@ -5,9 +5,9 @@ import org.cineticketapi.dto.PeliculaCatalogoReqDto;
 import org.cineticketapi.dto.PeliculaCatalogoRespDto;
 import org.cineticketapi.exception.ApiException;
 import org.cineticketapi.mapper.PeliculaCatalogoMapper;
-import org.cineticketapi.model.PeliculaCatalogo;
+import org.cineticketapi.model.peliculaCatalogo.PeliculaCatalogo;
+import org.cineticketapi.model.peliculaCatalogo.PeliculaCatalogoId;
 import org.cineticketapi.repository.PeliculaCatalogoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,40 +18,65 @@ import java.util.Optional;
 @Transactional
 public class PeliculaCatalogoService {
 
-    @Autowired
-    private PeliculaCatalogoRepository peliculaCatalogoRepository;
+    private final PeliculaCatalogoRepository peliculaCatalogoRepository;
+    private final PeliculaCatalogoMapper peliculaCatalogoMapper;
 
-    @Autowired
-    private PeliculaCatalogoMapper peliculaCatalogoMapper;
+    public PeliculaCatalogoService(
+            PeliculaCatalogoRepository peliculaCatalogoRepository,
+            PeliculaCatalogoMapper peliculaCatalogoMapper
+    ) {
+        this.peliculaCatalogoRepository = peliculaCatalogoRepository;
+        this.peliculaCatalogoMapper = peliculaCatalogoMapper;
+    }
 
+    // ===========================
+    // GET ALL
+    // ===========================
     public List<PeliculaCatalogoRespDto> getPeliculas() {
-
-        List<PeliculaCatalogo> lista = peliculaCatalogoRepository.findAll();
-        return lista.stream()
+        return peliculaCatalogoRepository.findAll()
+                .stream()
                 .map(peliculaCatalogoMapper::toDto)
                 .toList();
     }
 
-    public Optional<PeliculaCatalogoRespDto> getById(Long idPelicula) {
-        Optional<PeliculaCatalogo> item = peliculaCatalogoRepository.findById(idPelicula);
-        if (!item.isPresent()) {
+    // ===========================
+    // GET BY ID (COMPUESTO)
+    // ===========================
+    public Optional<PeliculaCatalogoRespDto> getById(Long idPelicula, Long idCatalogo) {
+
+        PeliculaCatalogoId id = new PeliculaCatalogoId(idPelicula, idCatalogo);
+
+        Optional<PeliculaCatalogo> item = peliculaCatalogoRepository.findById(id);
+
+        if (item.isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Registro no encontrado");
         }
-        return Optional.ofNullable(peliculaCatalogoMapper.toDto(item.get()));
+
+        return Optional.of(peliculaCatalogoMapper.toDto(item.get()));
     }
 
+    // ===========================
+    // CREATE
+    // ===========================
     public Optional<PeliculaCatalogoRespDto> create(PeliculaCatalogoReqDto dto) {
         PeliculaCatalogo entity = peliculaCatalogoMapper.toEntity(dto);
         PeliculaCatalogo saved = peliculaCatalogoRepository.save(entity);
-        return Optional.ofNullable(peliculaCatalogoMapper.toDto(saved));
+        return Optional.of(peliculaCatalogoMapper.toDto(saved));
     }
 
-    public Long delete(Long idPelicula) {
-        Optional<PeliculaCatalogo> entity = peliculaCatalogoRepository.findById(idPelicula);
-        if (!entity.isPresent()) {
+    // ===========================
+    // DELETE
+    // ===========================
+    public void delete(Long idPelicula, Long idCatalogo) {
+
+        PeliculaCatalogoId id = new PeliculaCatalogoId(idPelicula, idCatalogo);
+
+        Optional<PeliculaCatalogo> entity = peliculaCatalogoRepository.findById(id);
+
+        if (entity.isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Registro no encontrado");
         }
+
         peliculaCatalogoRepository.delete(entity.get());
-        return idPelicula;
     }
 }

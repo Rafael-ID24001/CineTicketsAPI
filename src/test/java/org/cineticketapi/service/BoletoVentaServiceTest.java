@@ -3,7 +3,8 @@ package org.cineticketapi.service;
 import org.cineticketapi.dto.BoletoVentaReqDto;
 import org.cineticketapi.dto.BoletoVentaRespDto;
 import org.cineticketapi.mapper.BoletoVentaMapper;
-import org.cineticketapi.model.BoletoVenta;
+import org.cineticketapi.model.boletoVenta.BoletoVenta;
+import org.cineticketapi.model.boletoVenta.BoletoVentaId;
 import org.cineticketapi.repository.BoletoVentaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class BoletoVentaServiceTest {
@@ -36,9 +36,9 @@ class BoletoVentaServiceTest {
 
     @Test
     void testGetBoletos() {
-        BoletoVenta boleto = new BoletoVenta();
-        when(boletoVentaRepository.findAll()).thenReturn(List.of(boleto));
-        when(boletoVentaMapper.toDto(boleto)).thenReturn(new BoletoVentaRespDto());
+        BoletoVenta entity = new BoletoVenta();
+        when(boletoVentaRepository.findAll()).thenReturn(List.of(entity));
+        when(boletoVentaMapper.toDto(entity)).thenReturn(new BoletoVentaRespDto());
 
         List<BoletoVentaRespDto> result = boletoVentaService.getBoletos();
 
@@ -48,41 +48,45 @@ class BoletoVentaServiceTest {
 
     @Test
     void testGetBoletoById() {
-        BoletoVenta boleto = new BoletoVenta();
-        when(boletoVentaRepository.findById(1L)).thenReturn(Optional.of(boleto));
-        when(boletoVentaMapper.toDto(boleto)).thenReturn(new BoletoVentaRespDto());
+        BoletoVentaId id = new BoletoVentaId(1L, 2L);
+        BoletoVenta entity = new BoletoVenta();
+        BoletoVentaRespDto dto = new BoletoVentaRespDto();
 
-        Optional<BoletoVentaRespDto> result = boletoVentaService.getBoletoById(1L);
+        when(boletoVentaRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(boletoVentaMapper.toDto(entity)).thenReturn(dto);
+
+        Optional<BoletoVentaRespDto> result = boletoVentaService.getBoletoById(1L, 2L);
 
         assertTrue(result.isPresent());
-        verify(boletoVentaRepository, times(1)).findById(1L);
+        assertEquals(dto, result.get());
     }
 
     @Test
     void testCreateBoleto() {
-        BoletoVentaReqDto dto = new BoletoVentaReqDto();
+        BoletoVentaReqDto req = new BoletoVentaReqDto();
         BoletoVenta entity = new BoletoVenta();
         BoletoVenta saved = new BoletoVenta();
+        BoletoVentaRespDto dto = new BoletoVentaRespDto();
 
-        when(boletoVentaMapper.toEntity(dto)).thenReturn(entity);
+        when(boletoVentaMapper.toEntity(req)).thenReturn(entity);
         when(boletoVentaRepository.save(entity)).thenReturn(saved);
-        when(boletoVentaMapper.toDto(saved)).thenReturn(new BoletoVentaRespDto());
+        when(boletoVentaMapper.toDto(saved)).thenReturn(dto);
 
-        Optional<BoletoVentaRespDto> result = boletoVentaService.createBoleto(dto);
+        Optional<BoletoVentaRespDto> result = boletoVentaService.createBoleto(req);
 
         assertTrue(result.isPresent());
-        verify(boletoVentaRepository, times(1)).save(entity);
+        assertEquals(dto, result.get());
     }
 
     @Test
     void testDeleteBoleto() {
-        BoletoVenta boleto = new BoletoVenta();
-        when(boletoVentaRepository.findById(1L)).thenReturn(Optional.of(boleto));
+        BoletoVentaId id = new BoletoVentaId(1L, 2L);
+        BoletoVenta entity = new BoletoVenta();
 
-        Long deletedId = boletoVentaService.deleteBoleto(1L);
+        when(boletoVentaRepository.findById(id)).thenReturn(Optional.of(entity));
 
-        assertEquals(1L, deletedId);
-        verify(boletoVentaRepository, times(1)).delete(boleto);
+        assertDoesNotThrow(() -> boletoVentaService.deleteBoleto(1L, 2L));
+
+        verify(boletoVentaRepository, times(1)).delete(entity);
     }
 }
-

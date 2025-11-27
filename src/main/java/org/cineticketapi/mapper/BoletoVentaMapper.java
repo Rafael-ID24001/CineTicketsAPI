@@ -2,7 +2,7 @@ package org.cineticketapi.mapper;
 
 import org.cineticketapi.dto.BoletoVentaReqDto;
 import org.cineticketapi.dto.BoletoVentaRespDto;
-import org.cineticketapi.model.BoletoVenta;
+import org.cineticketapi.model.boletoVenta.BoletoVenta;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -21,10 +21,11 @@ public class BoletoVentaController {
         return ResponseEntity.ok(boletoVentaService.getBoletos());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BoletoVentaRespDto> getById(@PathVariable Long id) {
+    @GetMapping("/{idBoleto}/{idVenta}")
+    public ResponseEntity<BoletoVentaRespDto> getById(@PathVariable Long idBoleto,
+                                                      @PathVariable Long idVenta) {
 
-        return boletoVentaService.getBoletoById(id)
+        return boletoVentaService.getBoletoById(idBoleto, idVenta)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -36,9 +37,11 @@ public class BoletoVentaController {
                 .orElse(ResponseEntity.badRequest().build());
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
-        boletoVentaService.deleteBoleto(id);
+    @DeleteMapping("/{idBoleto}/{idVenta}")
+    public ResponseEntity<String> delete(@PathVariable Long idBoleto,
+                                         @PathVariable Long idVenta) {
+
+        boletoVentaService.deleteBoleto(idBoleto, idVenta);
         return ResponseEntity.ok("Boleto eliminado con éxito");
     }
 }
