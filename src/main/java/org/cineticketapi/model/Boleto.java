@@ -28,7 +28,7 @@ public class Boleto {
     @Column(name = "id_cliente", nullable = false)
     private Long idCliente;
 
-    @JoinColumn(name = "id_asiento", nullable = false)
+    @Column(name = "id_asiento", nullable = false)
     private Long idAsiento;
 
     @Column(name = "fecha_compra", nullable = false)
