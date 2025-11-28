@@ -1,7 +1,6 @@
 package org.cineticketapi.service;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.cineticketapi.dto.GeneroDto;
 import org.cineticketapi.mapper.GeneroMapper;
 import org.cineticketapi.model.Genero;
@@ -13,16 +12,38 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class GeneroService {
-@Autowired
-    private final GeneroRepository repository;
-    public GeneroService(GeneroRepository repository) { this.repository = repository; }
-    public List<Genero> listar() { return repository.findAll(); }
-    public Optional<Genero> obtenerPorId(Long id) { return repository.findById(id); }
-    public Genero guardar(Genero g) { return repository.save(g); }
+
+    @Autowired
+    private GeneroRepository repository;
+
+    @Autowired
+    private GeneroMapper mapper;
+
+
+    public List<GeneroDto> listar() {
+        return repository.findAll().stream().map(mapper::toDto).toList();
+    }
+    public Optional<GeneroDto> obtenerPorId(Long id) {
+        Optional<Genero> gen = repository.findById(id);
+        return Optional.ofNullable(mapper.toDto(gen.get()));
+    }
+
+    public Optional<GeneroDto> guardar(GeneroDto g) {
+        Genero gen = mapper.toEntity(g);
+        return Optional.ofNullable(mapper.toDto(repository.save(gen)));
+    }
+
+    public Optional<GeneroDto> actualizar(GeneroDto g, Long idGen) {
+        Genero genExist = repository.findById(idGen)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        Genero gen = mapper.updateEntity(genExist, g);
+        return Optional.ofNullable(mapper.toDto(repository.save(gen)));
+    }
+
     public void eliminar(Long id) { repository.deleteById(id); }
 }

@@ -51,7 +51,6 @@ public class PeliculaController extends BaseController {
     public ResponseEntity<ApiResponse<?>> crear(@Valid @RequestBody PeliculaDto dto) {
         try {
             PeliculaDto creado = service.crear(dto);
-            // Si no tienes createdApiResponse, usamos okApiResponse
             return ResponseEntity.ok(okApiResponse(creado));
         } catch (Exception e) {
             String message = Constants.MSG_ERROR_500 + e.getMessage();

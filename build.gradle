@@ -59,6 +59,7 @@ jacocoTestReport {
 				exclude '**/dto/*'
 				exclude '**/util/*'
 				exclude '**/exception/*'
+				exclude '**/mapper/*'
 			}
 	)
 }
