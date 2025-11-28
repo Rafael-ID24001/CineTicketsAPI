@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cineticketapi.dto.PeliculaDto;
 import org.cineticketapi.model.Pelicula;
 import org.cineticketapi.repository.PeliculaRepository;
+import org.cineticketapi.util.enums.ModelEnums;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class PeliculaService {
     public PeliculaDto crear(PeliculaDto dto) {
         Pelicula entity = toEntity(dto);
         entity.setIdPelicula(null); // asegurar creación
+        entity.setEstado(ModelEnums.EstadoPelicula.ACTIVA);
         Pelicula saved = repository.save(entity);
         return toDto(saved);
     }

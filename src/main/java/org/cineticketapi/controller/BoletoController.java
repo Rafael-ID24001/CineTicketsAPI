@@ -3,7 +3,6 @@ package org.cineticketapi.controller;
 import jakarta.validation.Valid;
 import org.cineticketapi.dto.BoletoRequestDTO;
 import org.cineticketapi.dto.BoletoResponseDTO;
-import org.cineticketapi.model.Boleto;
 import org.cineticketapi.service.BoletoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,7 +11,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*; // Importa todas las anotaciones web
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/boletos") // <-- Ruta base para Boletos
